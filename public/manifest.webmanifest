@@ -1,0 +1,18 @@
+{
+  "name": "Generador de Contratos — Panamá",
+  "short_name": "Generador Contratos",
+  "description": "Generador de contratos laborales y de servicios profesionales bajo la legislación de la República de Panamá.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05090f",
+  "theme_color": "#060b1a",
+  "lang": "es-PA",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
