@@ -4,7 +4,7 @@
   "private": true,
   "description": "Generador de Contratos - herramienta independiente para crear contratos laborales y de servicios profesionales bajo la legislación de la República de Panamá.",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3005",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

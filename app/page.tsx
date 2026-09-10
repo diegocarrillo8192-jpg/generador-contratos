@@ -35,6 +35,15 @@ const datosIniciales = (): FormData => ({
   causales: causalesDefaultLaboral,
   fechaSuscripcion: fechaDefault(),
   ciudadSuscripcion: "Ciudad de Panamá",
+  confidencialidad: false,
+  anexoEquipos: false,
+  equipos: "",
+  testigosActivo: false,
+  testigo1Nombre: "",
+  testigo1Cedula: "",
+  testigo2Nombre: "",
+  testigo2Cedula: "",
+  notarizacion: false,
   honorarios: "",
   plazoPago: "",
   entregables: "",
@@ -75,6 +84,7 @@ export default function Home() {
       tipo: t,
       causales:
         t === "servicios" ? causalesDefaultServicios : causalesDefaultLaboral,
+      confidencialidad: t === "servicios",
     }));
 
   const reiniciar = () => setData(datosIniciales());

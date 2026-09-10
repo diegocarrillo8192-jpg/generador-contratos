@@ -49,6 +49,17 @@ export interface FormData {
   fechaSuscripcion: string;
   ciudadSuscripcion: string;
 
+  confidencialidad: boolean;
+  anexoEquipos: boolean;
+  equipos: string;
+
+  testigosActivo: boolean;
+  testigo1Nombre: string;
+  testigo1Cedula: string;
+  testigo2Nombre: string;
+  testigo2Cedula: string;
+  notarizacion: boolean;
+
   honorarios: string;
   plazoPago: string;
   entregables: string;

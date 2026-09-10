@@ -1,6 +1,31 @@
-import type { DocModel } from "@/lib/doc";
+import type { DocModel, FirmaBloque } from "@/lib/doc";
+import {
+  conClaves,
+  conClavesFirmas,
+  conClavesItems,
+  firmaNotarizacion,
+} from "@/lib/doc";
+
+function FirmaCelda({ f }: { f: FirmaBloque }) {
+  return (
+    <div className="paper__firma">
+      <div className="paper__firma-role">{f.titulo}</div>
+      <div className="paper__firma-name">{f.nombre}</div>
+      {f.detalle && <div className="paper__firma-detalle">{f.detalle}</div>}
+      <div className="paper__firma-line" />
+      <div className="paper__firma-sign">Firma</div>
+    </div>
+  );
+}
 
 export default function PreviewDoc({ doc }: { doc: DocModel }) {
+  const notario = firmaNotarizacion("");
+  const bloques = conClaves(doc.blocks);
+  const firmas = conClavesFirmas([
+    doc.firmas.izquierda,
+    doc.firmas.derecha,
+    ...doc.testigos,
+  ]);
   return (
     <article className="paper">
       <div className="paper__brand">
@@ -27,70 +52,80 @@ export default function PreviewDoc({ doc }: { doc: DocModel }) {
         </div>
       </div>
       <div className="paper__doc">
-        {doc.blocks.map((b, i) => {
+        {bloques.map(({ block: b, clave }) => {
           switch (b.t) {
             case "title":
               return (
-                <h1 key={i} className="paper__title">
+                <h1 key={clave} className="paper__title">
                   {b.text}
                 </h1>
               );
             case "subtitle":
               return (
-                <div key={i} className="paper__subtitle">
+                <div key={clave} className="paper__subtitle">
                   {b.text}
                 </div>
               );
+            case "h":
+              return (
+                <p key={clave} className="paper__annex">
+                  {b.text}
+                </p>
+              );
             case "p":
               return (
-                <p key={i} className="paper__p">
+                <p key={clave} className="paper__p">
                   {b.text}
                 </p>
               );
             case "clause":
               return (
-                <p key={i} className="paper__clause">
+                <p key={clave} className="paper__clause">
                   {b.n}: {b.text}
                 </p>
               );
             case "enum":
               return (
-                <div key={i}>
-                  {b.items.map((it, j) => (
-                    <p key={j} className="paper__enum">
-                      {String.fromCharCode(97 + j)}) {it}
+                <div key={clave}>
+                  {conClavesItems(b.items).map((item) => (
+                    <p key={item.clave} className="paper__enum">
+                      {String.fromCharCode(97 + item.posicion)}) {item.text}
                     </p>
                   ))}
                 </div>
               );
             case "num":
               return (
-                <div key={i}>
-                  {b.items.map((it, j) => (
-                    <p key={j} className="paper__num">
-                      {j + 1}. {it}
+                <div key={clave}>
+                  {conClavesItems(b.items).map((item) => (
+                    <p key={item.clave} className="paper__num">
+                      {item.posicion + 1}. {item.text}
                     </p>
                   ))}
                 </div>
               );
             case "sp":
-              return <div key={i} className="paper__space" />;
+              return <div key={clave} className="paper__space" />;
           }
         })}
-        <div className="paper__firmas">
-          <div className="paper__firma">
-            <div className="paper__firma-role">{doc.firmas.izquierda[0]}</div>
-            <div className="paper__firma-name">{doc.firmas.izquierda[1]}</div>
-            <div className="paper__firma-line" />
-            <div className="paper__firma-sign">Firma</div>
-          </div>
-          <div className="paper__firma">
-            <div className="paper__firma-role">{doc.firmas.derecha[0]}</div>
-            <div className="paper__firma-name">{doc.firmas.derecha[1]}</div>
-            <div className="paper__firma-line" />
-            <div className="paper__firma-sign">Firma</div>
-          </div>
+        <div className={`paper__firmas ${doc.testigos.length > 0 ? "" : "paper__firmas--dos"}`}>
+          {firmas.map(({ firma, clave }) => (
+            <FirmaCelda key={clave} f={firma} />
+          ))}
         </div>
+        {doc.notarizacion && (
+          <div className="paper__notario">
+            <p className="paper__notario-title">
+              Espacio para Notarización / Autenticación de Firmas
+            </p>
+            <p className="paper__p">{notario.bloque}</p>
+            {notario.lineas.map((linea) => (
+              <p key={linea} className="paper__notario-linea">
+                {linea}
+              </p>
+            ))}
+          </div>
+        )}
       </div>
     </article>
   );

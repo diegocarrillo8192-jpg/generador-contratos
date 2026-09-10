@@ -7,6 +7,7 @@ export function Field({
   children,
   className = "",
   full = false,
+  htmlFor,
 }: {
   label: string;
   required?: boolean;
@@ -14,9 +15,10 @@ export function Field({
   children: ReactNode;
   className?: string;
   full?: boolean;
+  htmlFor?: string;
 }) {
   return (
-    <label className={`field ${full ? "field--full" : ""} ${className}`}>
+    <label className={`field ${full ? "field--full" : ""} ${className}`} htmlFor={htmlFor}>
       <span className="field__label">
         {label}
         {required && <span className="req">*</span>}

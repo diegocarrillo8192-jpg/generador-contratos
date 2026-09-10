@@ -1,5 +1,11 @@
 import type { FormData, Persona } from "./types";
-import { DocModel, Block, encabezadoContrato, firmas } from "./doc";
+import {
+  DocModel,
+  Block,
+  FirmaBloque,
+  bloqueFirma,
+  encabezadoContrato,
+} from "./doc";
 import {
   dinero,
   dineroUSD,
@@ -31,6 +37,91 @@ function funcionesItems(d: FormData): string[] {
     return [`Desempeñar el cargo de ${d.cargo || "[cargo]"} y las demás funciones afines que le sean asignadas por EL EMPLEADOR, dentro del giro normal de sus actividades.`];
   }
   return items;
+}
+
+function detalleFirma(p: Persona): string {
+  const partes: string[] = [];
+  if (p.tipo === "juridica" && p.representante) {
+    partes.push(`Representante legal: ${p.representante}`);
+  }
+  if (p.cedula) partes.push(`Cédula N.° ${p.cedula}`);
+  if (p.ruc) {
+    partes.push(`RUC N.° ${p.ruc}${p.dv ? ` DV ${p.dv}` : ""}`);
+  }
+  return partes.join(" · ");
+}
+
+function testigosDocumento(d: FormData): FirmaBloque[] {
+  if (!d.testigosActivo) return [];
+  return [
+    bloqueFirma(
+      "TESTIGO 1",
+      d.testigo1Nombre.trim() || "____________________",
+      d.testigo1Cedula ? `Cédula N.° ${d.testigo1Cedula}` : undefined
+    ),
+    bloqueFirma(
+      "TESTIGO 2",
+      d.testigo2Nombre.trim() || "____________________",
+      d.testigo2Cedula ? `Cédula N.° ${d.testigo2Cedula}` : undefined
+    ),
+  ];
+}
+
+function anexoEquipos(d: FormData, parte: string): Block[] {
+  if (!d.anexoEquipos) return [];
+  const lista = parseLista(d.equipos);
+  const items =
+    lista.length > 0 ? lista : ["[Descripción del equipo o herramienta entregado]"];
+  const art = parte === "EL TRABAJADOR" ? "EL TRABAJADOR" : "EL CONTRATISTA";
+  const genero = parte === "EL TRABAJADOR" ? "trabajador(a)" : "contratista";
+  return [
+    {
+      t: "h",
+      text: "ANEXO ÚNICO · ENTREGA, CUSTODIA Y DEVOLUCIÓN DE EQUIPOS Y HERRAMIENTAS DE TRABAJO",
+    },
+    {
+      t: "p",
+      text: `${art} declara haber recibido a su entera satisfacción, en buen estado de funcionamiento y conservación, los equipos, herramientas y accesorios de trabajo que se detallan a continuación, los cuales serán utilizados exclusivamente para el desempeño de sus labores:`,
+    },
+    {
+      t: "num",
+      items: items.map(
+        (it) =>
+          `${it} — Recibido por ${genero}: ____________ Fecha: ____/____/______ Firma: ______________`
+      ),
+    },
+    {
+      t: "p",
+      text: `En consecuencia, ${art} asume la responsabilidad por la custodia, cuidado y conservación de los bienes recibidos y se obliga a: (a) utilizarlos únicamente para las labores contratadas y conforme a las instrucciones de la parte contratante; (b) no enajenarlos, darlos en garantía, cederlos, prestarlos ni retirarlos del lugar de trabajo sin autorización previa y escrita; (c) mantenerlos en buen estado y reportar de inmediato cualquier daño, pérdida o hurto; y (d) devolverlos en la fecha de terminación de la relación contractual, o dentro de los tres (3) días siguientes, en el mismo estado en que los recibió, salvo el deterioro normal por su uso.`,
+    },
+    {
+      t: "p",
+      text: `${art} responderá por los daños o pérdidas de los bienes que le sean imputables por negligencia, uso indebido, dolo o falta de custodia, de conformidad con la legislación vigente de la República de Panamá. Tratándose de relaciones laborales, cualquier deducción o responsabilidad se hará dentro de los límites y procedimientos establecidos en el Código de Trabajo y demás normas aplicables, sin que ello implique renuncia a los derechos del trabajador.`,
+    },
+  ];
+}
+
+function bloqueCierre(): Block[] {
+  return [
+    {
+      t: "p",
+      text: "Las partes declaran que conocen el contenido y alcance del presente contrato y de sus anexos, lo aceptan y firman en señal de conformidad en la ciudad y fecha indicadas en el encabezamiento, en dos (2) originales de igual tenor.",
+    },
+    { t: "sp" },
+  ];
+}
+
+function seccionConfidencialidadLaboral(d: FormData): Seccion | null {
+  if (!d.confidencialidad) return null;
+  return {
+    titulo: "Confidencialidad, protección de datos personales y propiedad intelectual",
+    items: [
+      `“EL TRABAJADOR” reconoce que, en el ejercicio de sus funciones, tendrá acceso a información confidencial de “EL EMPLEADOR” y de terceros, incluyendo secretos empresariales, listas de clientes, información comercial, técnica, financiera, contable, procesos, metodologías, software y datos personales. Por tanto, se obliga a mantener estricta confidencialidad sobre dicha información, a no divulgarla, reproducirla ni utilizarla en beneficio propio o de terceros, incluso con posterioridad a la terminación de la relación de trabajo.`,
+      `Toda obra, invento, mejora, diseño, software, documento, informe o creación intelectual que “EL TRABAJADOR” produzca en el marco de la relación de trabajo y con ocasión de sus funciones, pertenecerá en forma exclusiva a “EL EMPLEADOR”, quien podrá explotarla libremente. “EL TRABAJADOR” cede a favor de “EL EMPLEADOR” todos los derechos patrimoniales de autor que pudieran corresponderle, conforme a la Ley N.° 64 de 2012 sobre Derecho de Autor y Derechos Conexos de la República de Panamá.`,
+      `En el tratamiento de datos personales, “EL TRABAJADOR” cumplirá la Ley N.° 81 de 26 de marzo de 2019 de Protección de Datos Personales de la República de Panamá, sus reglamentos y las políticas internas de “EL EMPLEADOR”, aplicando los principios de licitud, lealtad, transparencia, finalidad, proporcionalidad, calidad y seguridad, y no tratará dichos datos para fines distintos a los autorizados.`,
+      `Las obligaciones de confidencialidad y de protección de datos contenidas en esta cláusula subsistirán durante la vigencia de la relación de trabajo y por un término de dos (2) años adicionales contados desde su terminación, o por el plazo mayor que exija la ley para la información calificada como secreto empresarial.`,
+    ],
+  };
 }
 
 function datosPago(d: FormData): string {
@@ -251,6 +342,9 @@ function laboral(d: FormData): DocModel {
     ],
   });
 
+  const seccionConfidencial = seccionConfidencialidadLaboral(d);
+  if (seccionConfidencial) secciones.push(seccionConfidencial);
+
   secciones.push({
     titulo: "Domicilio y jurisdicción",
     items: [
@@ -264,15 +358,15 @@ function laboral(d: FormData): DocModel {
       { t: "p", text: comparecen[0] },
       { t: "p", text: comparecen[1] },
       ...bloqueSecciones(secciones),
-      { t: "p", text: "Las partes declaran que conocen el contenido y alcance del presente contrato, lo aceptan y firman en señal de conformidad en la ciudad y fecha indicadas en el encabezamiento, en dos (2) originales de igual tenor." },
-      { t: "sp" },
+      ...anexoEquipos(d, "EL TRABAJADOR"),
+      ...bloqueCierre(),
     ],
-    firmas: firmas(
-      E.tipo === "juridica" ? E.nombre : E.nombre,
-      T.nombre,
-      "EL EMPLEADOR",
-      "EL TRABAJADOR"
-    ),
+    firmas: {
+      izquierda: bloqueFirma("EL EMPLEADOR", E.nombre, detalleFirma(E)),
+      derecha: bloqueFirma("EL TRABAJADOR", T.nombre, detalleFirma(T)),
+    },
+    testigos: testigosDocumento(d),
+    notarizacion: d.notarizacion,
     nota: "",
   };
   return doc;
@@ -342,21 +436,23 @@ function servicios(d: FormData): DocModel {
     ],
   });
 
-  secciones.push({
-    titulo: "Propiedad intelectual",
-    items: [
-      `Todos los derechos de autor, derechos de propiedad industrial e intelectual, patentes, diseños, software, documentos, informes y cualquier otro producto o entregable desarrollado por “EL CONTRATISTA” en virtud del presente contrato, serán de propiedad exclusiva de “EL CONTRATANTE”, quien podrá utilizarlos, modificarlos y explotarlos libremente. “EL CONTRATISTA” cede y transfiere a “EL CONTRATANTE” todos los derechos patrimoniales sobre dichos entregables, desde su creación y sin limitación territorial ni temporal, conforme a la Ley N.° 64 de 2012 sobre Derecho de Autor y Derechos Conexos de la República de Panamá.`,
-    ],
-  });
+  if (d.confidencialidad) {
+    secciones.push({
+      titulo: "Propiedad intelectual",
+      items: [
+        `Todos los derechos de autor, derechos de propiedad industrial e intelectual, patentes, diseños, software, documentos, informes y cualquier otro producto o entregable desarrollado por “EL CONTRATISTA” en virtud del presente contrato, serán de propiedad exclusiva de “EL CONTRATANTE”, quien podrá utilizarlos, modificarlos y explotarlos libremente. “EL CONTRATISTA” cede y transfiere a “EL CONTRATANTE” todos los derechos patrimoniales sobre dichos entregables, desde su creación y sin limitación territorial ni temporal, conforme a la Ley N.° 64 de 2012 sobre Derecho de Autor y Derechos Conexos de la República de Panamá.`,
+      ],
+    });
 
-  secciones.push({
-    titulo: "Confidencialidad y protección de datos personales",
-    items: [
-      `“EL CONTRATISTA” se obliga a mantener estricta confidencialidad sobre toda la información comercial, técnica, financiera, secretos empresariales y datos personales a los que tenga acceso con motivo del presente contrato, y a no divulgarla ni utilizarla para fines distintos a la ejecución del objeto contractual, incluso con posterioridad a la terminación del contrato.`,
-      `En el tratamiento de datos personales, “EL CONTRATISTA” actuará como encargado de tratamiento y cumplirá la Ley N.° 81 de 26 de marzo de 2019 de Protección de Datos Personales de la República de Panamá, sus reglamentos y las instrucciones de “EL CONTRATANTE”, adoptando medidas técnicas, organizativas y de seguridad apropiadas para proteger dichos datos.`,
-      "Las obligaciones de esta cláusula subsistirán por un término de cinco (5) años contados desde la terminación del presente contrato.",
-    ],
-  });
+    secciones.push({
+      titulo: "Confidencialidad y protección de datos personales",
+      items: [
+        `“EL CONTRATISTA” se obliga a mantener estricta confidencialidad sobre toda la información comercial, técnica, financiera, secretos empresariales y datos personales a los que tenga acceso con motivo del presente contrato, y a no divulgarla ni utilizarla para fines distintos a la ejecución del objeto contractual, incluso con posterioridad a la terminación del contrato.`,
+        `En el tratamiento de datos personales, “EL CONTRATISTA” actuará como encargado de tratamiento y cumplirá la Ley N.° 81 de 26 de marzo de 2019 de Protección de Datos Personales de la República de Panamá, sus reglamentos y las instrucciones de “EL CONTRATANTE”, adoptando medidas técnicas, organizativas y de seguridad apropiadas para proteger dichos datos, y aplicando los principios de licitud, lealtad, transparencia, finalidad, proporcionalidad y calidad.`,
+        "Las obligaciones de esta cláusula subsistirán por un término de cinco (5) años contados desde la terminación del presente contrato.",
+      ],
+    });
+  }
 
   secciones.push({
     titulo: "Naturaleza independiente y no subcontratación",
@@ -387,15 +483,15 @@ function servicios(d: FormData): DocModel {
       { t: "p", text: comparecen[0] },
       { t: "p", text: comparecen[1] },
       ...bloqueSecciones(secciones),
-      { t: "p", text: "Las partes declaran que conocen el contenido y alcance del presente contrato, lo aceptan y firman en señal de conformidad en la ciudad y fecha indicadas en el encabezamiento, en dos (2) originales de igual tenor." },
-      { t: "sp" },
+      ...anexoEquipos(d, "EL CONTRATISTA"),
+      ...bloqueCierre(),
     ],
-    firmas: firmas(
-      C.tipo === "juridica" ? C.nombre : C.nombre,
-      CT.nombre,
-      "EL CONTRATANTE",
-      "EL CONTRATISTA"
-    ),
+    firmas: {
+      izquierda: bloqueFirma("EL CONTRATANTE", C.nombre, detalleFirma(C)),
+      derecha: bloqueFirma("EL CONTRATISTA", CT.nombre, detalleFirma(CT)),
+    },
+    testigos: testigosDocumento(d),
+    notarizacion: d.notarizacion,
     nota: "",
   };
   return doc;

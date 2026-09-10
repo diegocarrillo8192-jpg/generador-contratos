@@ -4,8 +4,16 @@ import "./globals.css";
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
+function resolverMetadataBase(value: string): URL {
+  try {
+    return new URL(value);
+  } catch {
+    return new URL("http://localhost:3000/");
+  }
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: resolverMetadataBase(SITE_URL),
   title: "Generador de Contratos | Contratos Laborales y de Servicios en Panamá",
   description:
     "Crea contratos individuales de trabajo y contratos de prestación de servicios profesionales redactados bajo la legislación de la República de Panamá (Código de Trabajo, Ley 81 de 2019). Vista previa en vivo, exportación a PDF e impresión.",
