@@ -22,7 +22,7 @@ export function Mark({
       <defs>
         <linearGradient id={g1} x1="0" y1="0" x2="96" y2="96" gradientUnits="userSpaceOnUse">
           <stop stopColor="#22d3ee" />
-          <stop offset="1" stopColor="#1d4ed8" />
+          <stop offset="1" stopColor="#4f46e5" />
         </linearGradient>
       </defs>
       <rect width="96" height="96" rx="24" fill={`url(#${g1})`} />

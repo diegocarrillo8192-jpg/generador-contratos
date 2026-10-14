@@ -1,123 +1,148 @@
-import type { DocModel, FirmaBloque } from "@/lib/doc";
-import {
-  conClaves,
-  conClavesFirmas,
-  conClavesItems,
-  firmaNotarizacion,
-} from "@/lib/doc";
+import type { Block, BloqueConClave, DocModel, FirmaBloque } from "@/lib/doc";
+import { conClaves, conClavesFirmas, conClavesItems, fechaHoraFirma, firmaNotarizacion, letraInciso } from "@/lib/doc";
+import type { Marca } from "@/lib/types";
 
 function FirmaCelda({ f }: { f: FirmaBloque }) {
   return (
     <div className="paper__firma">
+      {f.img ? (
+        <div className="paper__firma-img">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={f.img} alt={`Firma de ${f.nombre}`} />
+        </div>
+      ) : null}
+      <div className={`paper__firma-line ${f.img ? "paper__firma-line--img" : ""}`} />
       <div className="paper__firma-role">{f.titulo}</div>
       <div className="paper__firma-name">{f.nombre}</div>
       {f.detalle && <div className="paper__firma-detalle">{f.detalle}</div>}
-      <div className="paper__firma-line" />
-      <div className="paper__firma-sign">Firma</div>
+      {f.img && (
+        <div className={`paper__firma-meta ${f.desactualizada ? "paper__firma-meta--old" : ""}`}>
+          {f.desactualizada ? "⚠ Firma sobre una versión anterior del texto" : `Firmado electrónicamente · ${fechaHoraFirma(f.fechaFirma ?? "")}`}
+        </div>
+      )}
     </div>
   );
 }
 
-export default function PreviewDoc({ doc }: { doc: DocModel }) {
-  const notario = firmaNotarizacion("");
-  const bloques = conClaves(doc.blocks);
-  const firmas = conClavesFirmas([
-    doc.firmas.izquierda,
-    doc.firmas.derecha,
-    ...doc.testigos,
-  ]);
-  return (
-    <article className="paper">
-      <div className="paper__brand">
-        <svg width="30" height="30" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <defs>
-            <linearGradient id="pp-g" x1="0" y1="0" x2="96" y2="96" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#0891b2" />
-              <stop offset="1" stopColor="#1e40af" />
-            </linearGradient>
-          </defs>
-          <rect width="96" height="96" rx="24" fill="url(#pp-g)" />
-          <rect x="29" y="17" width="37" height="56" rx="7" fill="#ffffff" />
-          <rect x="36" y="29" width="23" height="4.5" rx="2.25" fill="#0b1526" opacity="0.85" />
-          <rect x="36" y="39" width="23" height="4.5" rx="2.25" fill="#0b1526" opacity="0.85" />
-          <rect x="36" y="49" width="15" height="4.5" rx="2.25" fill="#0b1526" opacity="0.85" />
-          <circle cx="62" cy="60" r="14" fill="#38bdf8" />
-          <path d="M55.5 60.5l4.3 4.3 7.2-8.6" stroke="#ffffff" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        </svg>
-        <div className="paper__brand-txt">
-          <strong style={{ display: "block", color: "#0f172a", letterSpacing: "0.4px" }}>
-            Generador de Contratos
-          </strong>
-          Ciudad de Panamá, República de Panamá
-        </div>
-      </div>
-      <div className="paper__doc">
-        {bloques.map(({ block: b, clave }) => {
-          switch (b.t) {
-            case "title":
-              return (
-                <h1 key={clave} className="paper__title">
-                  {b.text}
-                </h1>
-              );
-            case "subtitle":
-              return (
-                <div key={clave} className="paper__subtitle">
-                  {b.text}
-                </div>
-              );
-            case "h":
-              return (
-                <p key={clave} className="paper__annex">
-                  {b.text}
-                </p>
-              );
-            case "p":
-              return (
-                <p key={clave} className="paper__p">
-                  {b.text}
-                </p>
-              );
-            case "clause":
-              return (
-                <p key={clave} className="paper__clause">
-                  {b.n}: {b.text}
-                </p>
-              );
-            case "enum":
-              return (
-                <div key={clave}>
-                  {conClavesItems(b.items).map((item) => (
-                    <p key={item.clave} className="paper__enum">
-                      {String.fromCharCode(97 + item.posicion)}) {item.text}
-                    </p>
-                  ))}
-                </div>
-              );
-            case "num":
-              return (
-                <div key={clave}>
-                  {conClavesItems(b.items).map((item) => (
-                    <p key={item.clave} className="paper__num">
-                      {item.posicion + 1}. {item.text}
-                    </p>
-                  ))}
-                </div>
-              );
-            case "sp":
-              return <div key={clave} className="paper__space" />;
-          }
-        })}
-        <div className={`paper__firmas ${doc.testigos.length > 0 ? "" : "paper__firmas--dos"}`}>
-          {firmas.map(({ firma, clave }) => (
-            <FirmaCelda key={clave} f={firma} />
+function Bloque({ b }: { b: Block }) {
+  switch (b.t) {
+    case "title":
+      return <h1 className="paper__title">{b.text}</h1>;
+    case "subtitle":
+      return <div className="paper__subtitle">{b.text}</div>;
+    case "h":
+      return <p className="paper__annex">{b.text}</p>;
+    case "p":
+      return <p className="paper__p">{b.text}</p>;
+    case "clause":
+      return (
+        <p className="paper__clause">
+          {b.n}: {b.text}
+        </p>
+      );
+    case "enum":
+    case "num":
+      return (
+        <div className="paper__list">
+          {conClavesItems(b.items).map((item) => (
+            <p key={item.clave} className="paper__enum">
+              <span className="paper__marker">{b.t === "enum" ? `${letraInciso(item.posicion)})` : `${item.posicion + 1}.`}</span> {item.text}
+            </p>
           ))}
+        </div>
+      );
+    case "sp":
+      return <div className="paper__space" />;
+    default:
+      return null;
+  }
+}
+
+function Membrete({ marca }: { marca: Marca }) {
+  if (!marca.mostrar || (!marca.logo && !marca.nombre.trim() && !marca.detalle.trim())) return null;
+  return (
+    <div className={`paper__brand paper__brand--${marca.alineacion} paper__brand--${marca.tamano}`}>
+      {marca.logo && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={marca.logo} alt="" className="paper__logo" />
+      )}
+      {(marca.nombre.trim() || marca.detalle.trim()) && (
+        <div className="paper__brand-txt">
+          {marca.nombre.trim() && <strong>{marca.nombre.trim()}</strong>}
+          {marca.detalle.trim() && <span>{marca.detalle.trim()}</span>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function PreviewDoc({
+  doc,
+  marca,
+  borrador,
+  papel,
+}: {
+  doc: DocModel;
+  marca: Marca;
+  borrador: boolean;
+  papel: "carta" | "a4";
+}) {
+  const notario = firmaNotarizacion(doc.ciudad);
+  const todos = conClaves(doc.blocks);
+  // El párrafo de cierre se imprime junto a las firmas para que nunca queden solas en una hoja.
+  let iCierre = -1;
+  for (let i = todos.length - 1; i >= 0; i--) {
+    if (todos[i].block.t === "p") {
+      iCierre = i;
+      break;
+    }
+  }
+  const cierre = iCierre >= 0 ? todos[iCierre] : null;
+  const bloques = todos.filter((_, i) => i !== iCierre);
+  const grupos: BloqueConClave[][] = [];
+  for (let i = 0; i < bloques.length; i++) {
+    const actual = bloques[i];
+    const siguiente = bloques[i + 1];
+    if ((actual.block.t === "clause" || actual.block.t === "h") && siguiente) {
+      grupos.push([actual, siguiente]);
+      i += 1;
+    } else {
+      grupos.push([actual]);
+    }
+  }
+  const firmas = conClavesFirmas([doc.firmas.izquierda, doc.firmas.derecha, ...doc.testigos]);
+  return (
+    <article className={`paper paper--${papel}`} aria-label="Vista previa del contrato">
+      {borrador && (
+        <div className="paper__watermark" aria-hidden="true">
+          BORRADOR
+        </div>
+      )}
+      <Membrete marca={marca} />
+      <div className="paper__doc">
+        {grupos.map((g) =>
+          g.length === 1 ? (
+            <Bloque key={g[0].clave} b={g[0].block} />
+          ) : (
+            // El título de cada cláusula se mantiene junto a su primer párrafo al paginar.
+            <div key={g[0].clave} className="paper__keep">
+              {g.map((x) => (
+                <Bloque key={x.clave} b={x.block} />
+              ))}
+            </div>
+          )
+        )}
+        <div className="paper__cierre">
+          {cierre && <Bloque b={cierre.block} />}
+          <div className="paper__firmas">
+            {firmas.map(({ firma, clave }) => (
+              <FirmaCelda key={clave} f={firma} />
+            ))}
+          </div>
         </div>
         {doc.notarizacion && (
           <div className="paper__notario">
-            <p className="paper__notario-title">
-              Espacio para Notarización / Autenticación de Firmas
-            </p>
+            <p className="paper__notario-title">Espacio para notarización / autenticación de firmas</p>
             <p className="paper__p">{notario.bloque}</p>
             {notario.lineas.map((linea) => (
               <p key={linea} className="paper__notario-linea">
@@ -126,6 +151,10 @@ export default function PreviewDoc({ doc }: { doc: DocModel }) {
             ))}
           </div>
         )}
+        <div className="paper__huella">
+          Huella del documento: <strong>{doc.huella}</strong>
+          {doc.firmaVirtual ? " · Documento con firma electrónica simple (Ley 51 de 2008)" : ""}
+        </div>
       </div>
     </article>
   );
