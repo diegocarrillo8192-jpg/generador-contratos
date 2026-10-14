@@ -3,23 +3,13 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { IntroSplash } from "@/components/IntroSplash";
 import { Topbar } from "@/components/Topbar";
-import ContractForms, { enfocarCampo, pasoDeSeccion } from "@/components/ContractForms";
+import ContractForms, { ResumenContrato, StepNav, enfocarCampo, pasoDeSeccion } from "@/components/ContractForms";
+import { Menu } from "@/components/ui";
 import PreviewPanel from "@/components/PreviewPanel";
 import GuardadosModal from "@/components/GuardadosModal";
 import { ToastProvider, useToast } from "@/components/Toast";
 import Link from "next/link";
-import {
-  BookIcon,
-  CheckIcon,
-  EditIcon,
-  EyeIcon,
-  FolderIcon,
-  PenIcon,
-  RefreshIcon,
-  ShieldIcon,
-  SparkIcon,
-  UploadIcon,
-} from "@/components/icons";
+import { BookIcon, CheckIcon, EditIcon, EyeIcon, FolderIcon, MoreIcon, RefreshIcon, ShieldIcon, SparkIcon } from "@/components/icons";
 import { buildDocument } from "@/lib/legal";
 import { revisar, type Hallazgo } from "@/lib/validacion";
 import { datosEjemplo } from "@/lib/ejemplos";
@@ -35,12 +25,6 @@ import {
   type TipoContrato,
 } from "@/lib/types";
 
-const FLUJO = [
-  { icon: <EditIcon size={18} />, t: "Configure", d: "Tipo, partes y condiciones" },
-  { icon: <ShieldIcon size={18} />, t: "Revise", d: "Validación legal en vivo" },
-  { icon: <PenIcon size={18} />, t: "Firme", d: "A mano o virtualmente" },
-  { icon: <UploadIcon size={18} />, t: "Envíe", d: "PDF, Word o correo" },
-];
 
 function tieneContenido(d: FormData): boolean {
   return !!(d.empleador.nombre.trim() || d.trabajador.nombre.trim() || d.cargo.trim() || d.objeto.trim() || d.salario.trim() || d.honorarios.trim());
@@ -164,84 +148,121 @@ function Generador() {
     <>
       <IntroSplash />
       <Topbar activo="generador">
-        <span className={`autosave autosave--${guardado}`} title="El borrador se guarda en este navegador">
+        <span className={`autosave autosave--${guardado}`} title={`${indicador} · el borrador se guarda en este navegador`}>
           <i />
-          <span className="hide-md">{indicador}</span>
+          <span className="hide-md">{guardado === "pendiente" ? "Guardando…" : guardado === "error" ? "Sin guardar" : "Guardado"}</span>
         </span>
-        <button className="btn btn--sm btn--ghost topbar__ejemplo" onClick={cargarEjemplo} title="Llenar el formulario con datos ficticios del tipo seleccionado">
-          <SparkIcon size={16} />
-          <span className="hide-sm">Ejemplo</span>
-        </button>
         <button className="btn btn--sm btn--ghost" onClick={() => setVerGuardados(true)} title="Guardar y abrir contratos">
           <FolderIcon size={16} />
           <span className="hide-sm">Mis contratos</span>
         </button>
-        <button className="btn btn--sm btn--ghost" onClick={reiniciar} title="Restablecer todos los campos">
-          <RefreshIcon size={16} />
-          <span className="hide-sm">Restablecer</span>
-        </button>
+        <Menu
+          label="Más acciones"
+          icon={<MoreIcon />}
+          items={[
+            { label: "Cargar un ejemplo", icon: <SparkIcon size={16} />, onSelect: cargarEjemplo },
+            { label: "Restablecer formulario", icon: <RefreshIcon size={16} />, onSelect: reiniciar, danger: true },
+          ]}
+        />
       </Topbar>
 
       <main className="app">
         <section className="hero no-print">
-          <div className="hero__main">
+          <div className="hero__text">
             <span className="eyebrow">
-              <ShieldIcon size={13} /> Plataforma legal · República de Panamá
+              <ShieldIcon size={13} /> Legislación de la República de Panamá
             </span>
             <h1>
-              Contratos con <em>precisión corporativa</em>,<br className="hide-sm" /> de la redacción a la firma.
+              Contratos con <em>precisión corporativa</em>,<br /> de la redacción a la firma.
             </h1>
-            <p>
-              Genere contratos laborales y de servicios profesionales conforme al Código de Trabajo y la legislación panameña vigente, con revisión legal
-              automática, firma electrónica y la identidad de su empresa.
-            </p>
+            <p>Laborales y de servicios profesionales, conforme al Código de Trabajo, con revisión legal automática y firma electrónica.</p>
             <div className="hero__cta">
-              <Link href="/manual" className="btn btn--primary">
-                <BookIcon size={16} /> Ver manual de uso
-              </Link>
-              <button type="button" className="btn" onClick={cargarEjemplo}>
-                <SparkIcon size={16} /> Probar con un ejemplo
+              <button type="button" className="btn btn--primary btn--lg" onClick={cargarEjemplo}>
+                <SparkIcon size={17} /> Probar con un ejemplo
               </button>
+              <Link href="/manual" className="btn btn--lg btn--outline">
+                <BookIcon size={17} /> Ver el manual
+              </Link>
             </div>
+            <dl className="hero__stats">
+              <div>
+                <dt>4</dt>
+                <dd>modelos de contrato</dd>
+              </div>
+              <div>
+                <dt>17</dt>
+                <dd>cláusulas opcionales</dd>
+              </div>
+              <div>
+                <dt>PDF · Word</dt>
+                <dd>con firma virtual</dd>
+              </div>
+            </dl>
           </div>
-          <ol className="flow" aria-label="Flujo de trabajo">
-            {FLUJO.map((f, i) => (
-              <li key={f.t} className="flow__item">
-                <span className="flow__ico">{f.icon}</span>
-                <span className="flow__txt">
-                  <span className="flow__n">0{i + 1}</span>
-                  <strong>{f.t}</strong>
-                  <span>{f.d}</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-          <ul className="trust" aria-label="Respaldo legal">
-            {["Código de Trabajo", "Ley 81 de 2019 · Datos personales", "Ley 51 de 2008 · Firma electrónica", "Ley 126 de 2020 · Teletrabajo", "PDF · Word"].map((t) => (
-              <li key={t}>
-                <CheckIcon size={13} /> {t}
-              </li>
-            ))}
-          </ul>
+          <div className="hero__art" aria-hidden="true">
+            <div className="sheet sheet--back" />
+            <div className="sheet">
+              <span className="sheet__logo" />
+              <span className="sheet__title" />
+              <span className="sheet__sub" />
+              <span className="sheet__line" />
+              <span className="sheet__line" />
+              <span className="sheet__line sheet__line--short" />
+              <span className="sheet__clause" />
+              <span className="sheet__line" />
+              <span className="sheet__line sheet__line--mid" />
+              <div className="sheet__firmas">
+                <div>
+                  <svg viewBox="0 0 120 40" className="sheet__sig">
+                    <path d="M4 28c10-18 18-22 22-10s-6 16 2 8 14-20 20-12-4 16 6 10 12-14 22-10 10 10 18 4 14-8 22-6" />
+                  </svg>
+                  <span />
+                </div>
+                <div>
+                  <svg viewBox="0 0 120 40" className="sheet__sig">
+                    <path d="M6 24c8-10 14-14 20-6s-2 14 8 6 10-16 18-10-2 14 8 10 14-12 22-6 6 8 14 2 10-6 18-4" />
+                  </svg>
+                  <span />
+                </div>
+              </div>
+            </div>
+            <span className="hero__badge hero__badge--ok">
+              <CheckIcon size={14} /> Firmado electrónicamente
+            </span>
+            <span className="hero__badge hero__badge--hash">
+              <ShieldIcon size={14} /> Huella 0830-0857-F587
+            </span>
+          </div>
         </section>
 
         <div className={`workspace workspace--${vista}`}>
-          <section className="form-side no-print" aria-label="Formulario">
-            <ContractForms
-              data={data}
-              set={set}
-              setPersona={setPersona}
-              onChangeTipo={cambiarTipo}
-              revision={revision}
-              marca={marca}
-              setMarca={setMarca}
-              paso={paso}
-              setPaso={setPaso}
-              huella={doc.huella}
-            />
-          </section>
+          <div className="editor no-print">
+            <aside className="editor__nav">
+              <StepNav data={data} revision={revision} paso={paso} setPaso={setPaso} />
+              <ResumenContrato data={data} doc={doc} />
+            </aside>
+            <section className="editor__main" aria-label="Formulario">
+              <ContractForms
+                data={data}
+                set={set}
+                setPersona={setPersona}
+                onChangeTipo={cambiarTipo}
+                revision={revision}
+                marca={marca}
+                setMarca={setMarca}
+                paso={paso}
+                setPaso={setPaso}
+                huella={doc.huella}
+              />
+            </section>
+          </div>
           <aside className="preview-side panel-sticky" aria-label="Vista previa">
-            <PreviewPanel data={diferido} doc={doc} marca={marca} revision={revision} onIrFormulario={irAHallazgo}
+            <PreviewPanel
+              data={diferido}
+              doc={doc}
+              marca={marca}
+              revision={revision}
+              onIrFormulario={irAHallazgo}
               onIrFirmas={() => {
                 setVista("form");
                 setPaso(6);

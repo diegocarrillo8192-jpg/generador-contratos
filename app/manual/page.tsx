@@ -282,7 +282,7 @@ export default function ManualPage() {
 
         <h2 className="manual-h">Guía paso a paso</h2>
         <p className="manual-lead">Siga estos pasos en orden. Puede saltar entre pasos en cualquier momento con la cuadrícula superior del formulario.</p>
-        <ol className="steps">
+        <ol className="guia">
           {PASOS.map((p, i) => (
             <li key={p.id} className="step" id={`paso-${i + 1}`}>
               <span className="step__n">{i + 1}</span>

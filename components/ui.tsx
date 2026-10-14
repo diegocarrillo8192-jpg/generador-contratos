@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { CheckIcon, XIcon } from "./icons";
 
 export function Field({
@@ -228,5 +228,59 @@ export function ProgressRing({ value, size = 44 }: { value: number; size?: numbe
         {value}%
       </text>
     </svg>
+  );
+}
+
+export interface MenuItem {
+  label: string;
+  icon?: ReactNode;
+  onSelect: () => void;
+  danger?: boolean;
+}
+
+/** Menú desplegable simple para acciones secundarias. */
+export function Menu({ label, icon, items, align = "right" }: { label: string; icon: ReactNode; items: MenuItem[]; align?: "left" | "right" }) {
+  const [abierto, setAbierto] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!abierto) return;
+    const fuera = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setAbierto(false);
+    };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAbierto(false);
+    };
+    document.addEventListener("mousedown", fuera);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("mousedown", fuera);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [abierto]);
+  return (
+    <div className="menu" ref={ref}>
+      <button type="button" className="icon-btn" aria-label={label} title={label} aria-haspopup="menu" aria-expanded={abierto} onClick={() => setAbierto((v) => !v)}>
+        {icon}
+      </button>
+      {abierto && (
+        <div className={`menu__pop menu__pop--${align}`} role="menu">
+          {items.map((it) => (
+            <button
+              key={it.label}
+              type="button"
+              role="menuitem"
+              className={`menu__item ${it.danger ? "menu__item--danger" : ""}`}
+              onClick={() => {
+                setAbierto(false);
+                it.onSelect();
+              }}
+            >
+              {it.icon}
+              {it.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

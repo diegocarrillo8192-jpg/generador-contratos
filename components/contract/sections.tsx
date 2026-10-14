@@ -56,6 +56,33 @@ function LetrasHint({ monto, moneda }: { monto: string; moneda: "balboas" | "dol
   return <span className="hint hint--mono">{montoEnLetras(monto, moneda)}</span>;
 }
 
+const BASE_LABORAL = [
+  "Objeto, cargo y funciones",
+  "Modalidad presencial, híbrida o teletrabajo",
+  "Jornada legal · Arts. 30 a 32",
+  "Salario en letras y deducciones de ley",
+  "Vacaciones y décimo tercer mes",
+  "Prima de antigüedad e indemnización",
+  "Causales de justa causa · Art. 213",
+  "Tres ejemplares para el MITRADEL · Art. 67",
+];
+
+const INCLUYE: Record<TipoContrato, string[]> = {
+  definido: ["Duración definida · Art. 74", ...BASE_LABORAL],
+  obra: ["Obra determinada y su conclusión", ...BASE_LABORAL],
+  indefinido: ["Período de prueba · Art. 78", ...BASE_LABORAL],
+  servicios: [
+    "Objeto y entregables",
+    "Honorarios en letras e ITBMS",
+    "Calendario de pagos por hitos",
+    "Penalidad por retraso con tope",
+    "Propiedad intelectual · Ley 64 de 2012",
+    "Confidencialidad y datos · Ley 81 de 2019",
+    "Relación independiente, sin subordinación",
+    "Terminación anticipada con preaviso",
+  ],
+};
+
 export function TipoContratoCard({
   data,
   set,
@@ -131,6 +158,17 @@ export function TipoContratoCard({
               ? "Termina al concluir la obra descrita. Ideal para proyectos de construcción o trabajos puntuales."
               : "Máximo 1 año (hasta 3 si requiere preparación técnica especial). No debe cubrir puestos permanentes (Art. 75)."}
       </p>
+      <div className="incluye">
+        <span className="incluye__t">Este modelo incluye</span>
+        <ul>
+          {INCLUYE[data.tipo].map((x) => (
+            <li key={x}>
+              <CheckIcon size={14} />
+              {x}
+            </li>
+          ))}
+        </ul>
+      </div>
     </Card>
   );
 }

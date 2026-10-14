@@ -274,3 +274,11 @@ export const ArrowRightIcon = ({ size }: IconProps) => (
     <path d="M5 12h14M13 6l6 6-6 6" />
   </svg>
 );
+
+export const MoreIcon = ({ size }: IconProps) => (
+  <svg {...base(size)}>
+    <circle cx="5" cy="12" r="1.4" />
+    <circle cx="12" cy="12" r="1.4" />
+    <circle cx="19" cy="12" r="1.4" />
+  </svg>
+);

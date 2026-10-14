@@ -12,7 +12,8 @@ import RevisionPanel from "./RevisionPanel";
 import CostosPanel from "./CostosPanel";
 import EnviarModal from "./EnviarModal";
 import { useToast } from "./Toast";
-import { CalcIcon, CopyIcon, FileIcon, PenIcon, PrintIcon, ShieldIcon, WordIcon, ZoomInIcon, ZoomOutIcon } from "./icons";
+import { CalcIcon, CopyIcon, FileIcon, MoreIcon, PenIcon, PrintIcon, ShieldIcon, WordIcon, ZoomInIcon, ZoomOutIcon } from "./icons";
+import { Menu } from "./ui";
 
 type Pestana = "doc" | "revision" | "costos";
 
@@ -133,22 +134,26 @@ export default function PreviewPanel({
           </div>
         </div>
         <div className="preview-actions">
-          <button className="btn btn--sm" onClick={copiar} title="Copiar el texto sin formato">
-            <CopyIcon size={16} />
-            <span className="hide-sm">Copiar</span>
-          </button>
-          <button className="btn btn--sm" onClick={word} disabled={exportando} title="Descargar documento editable de Word (.docx)">
+          <button className="btn btn--sm btn--ghost" onClick={word} disabled={exportando} title="Descargar documento editable de Word (.docx)">
             <WordIcon size={16} />
-            {exportando ? "Generando…" : "Word"}
+            <span className="hide-sm">{exportando ? "Generando…" : "Word"}</span>
           </button>
-          <button className="btn btn--sm" onClick={imprimir} title="Guardar como PDF o imprimir para firmar a mano">
+          <button className="btn btn--sm btn--ghost" onClick={imprimir} title="Imprimir o guardar como PDF">
             <PrintIcon size={16} />
-            <span className="hide-sm">PDF / </span>Imprimir
+            <span className="hide-sm">Imprimir</span>
           </button>
           <button className="btn btn--sm btn--primary" onClick={() => setEnviar(true)} title="Firmar virtualmente, descargar PDF o enviar por correo">
             <PenIcon size={16} />
             Firmar y enviar
           </button>
+          <Menu
+            label="Más opciones de exportación"
+            icon={<MoreIcon />}
+            items={[
+              { label: "Copiar texto", icon: <CopyIcon size={16} />, onSelect: copiar },
+              { label: "Descargar .txt", icon: <FileIcon size={16} />, onSelect: txt },
+            ]}
+          />
         </div>
       </div>
 
@@ -198,13 +203,6 @@ export default function PreviewPanel({
           <CostosPanel data={data} />
         </div>
       )}
-      <div className="preview-foot no-print">
-        <button type="button" className="link-btn" onClick={txt}>
-          Descargar .txt
-        </button>
-        <span>·</span>
-        <span>Para PDF con texto seleccionable: «Imprimir» → «Guardar como PDF».</span>
-      </div>
       <EnviarModal open={enviar} onClose={() => setEnviar(false)} data={data} doc={doc} onIrFirmas={onIrFirmas} />
     </div>
   );
