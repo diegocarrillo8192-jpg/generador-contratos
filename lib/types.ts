@@ -11,6 +11,8 @@ export interface Persona {
   actividad: string;
   profesion: string;
   nacionalidad: string;
+  /** Permiso de trabajo del MITRADEL (trabajadores extranjeros). */
+  permisoTrabajo: string;
   telefono: string;
   correo: string;
   provincia: string;
@@ -122,6 +124,7 @@ export function personaVacia(): Persona {
     actividad: "",
     profesion: "",
     nacionalidad: "panameña",
+    permisoTrabajo: "",
     telefono: "",
     correo: "",
     provincia: "Panamá",

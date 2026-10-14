@@ -1,5 +1,6 @@
 import type { Persona } from "@/lib/types";
 import { corregimientosDe, distritosDe, PROVINCIAS } from "@/lib/panama";
+import { esExtranjero } from "@/lib/legal";
 import { Field, Seg } from "../ui";
 import { BuildingIcon, UsersIcon } from "../icons";
 
@@ -181,6 +182,22 @@ export function PersonaFields({
           </Field>
         ) : (
           <div className="field" aria-hidden="true" />
+        )}
+        {!esJuridica && esExtranjero(persona) && (
+          <Field
+            label="Permiso de trabajo (MITRADEL)"
+            full
+            htmlFor={`${prefix}-permiso`}
+            hint="Requerido para trabajadores extranjeros (Arts. 17 a 19 del Código de Trabajo; Decreto Ejecutivo 4 de 2023)."
+          >
+            <input
+              id={`${prefix}-permiso`}
+              className="ui-input"
+              value={persona.permisoTrabajo}
+              placeholder="Número de resolución o permiso"
+              onChange={(e) => onPatch("permisoTrabajo", e.target.value)}
+            />
+          </Field>
         )}
         <Field label="RUC" required={esJuridica} htmlFor={`${prefix}-ruc`}>
           <input

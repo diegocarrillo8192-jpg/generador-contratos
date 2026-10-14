@@ -1,7 +1,7 @@
 import type { FormData, Persona } from "./types";
 import { HORAS_MAXIMAS } from "./types";
 import { diasEntre, parseMonto } from "./format";
-import { parseLista } from "./legal";
+import { esExtranjero, parseLista } from "./legal";
 import type { DocModel } from "./doc";
 
 export type Nivel = "error" | "aviso" | "sugerencia";
@@ -33,6 +33,14 @@ export interface Revision {
 
 const RE_CEDULA = /^(?:(?:[1-9]|1[0-3])(?:AV|PI)?|PE|E|N)-\d{1,4}-\d{1,6}$/i;
 const RE_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/** Tasa por hora bajo la cual se advierte un posible salario inferior al mínimo (DE 13 de 2025). */
+export const SALARIO_MINIMO_REFERENCIA = 1.99;
+
+/** Salario mensual convertido a tarifa por hora (semanas promedio por mes: 4.333). */
+export function salarioPorHora(mensual: number, horasSemanales: number): number {
+  return mensual / (horasSemanales * 4.333);
+}
 
 export function cedulaValida(c: string): boolean {
   return RE_CEDULA.test(c.trim().replace(/\s+/g, ""));
@@ -170,15 +178,27 @@ export function revisar(d: FormData, doc?: DocModel): Revision {
       });
     }
     const sal = parseMonto(d.salario);
+    const porHora = sal !== null && horas !== null && horas > 0 ? salarioPorHora(sal, horas) : null;
     if (sal !== null && sal <= 0) {
       hallazgos.push({ id: "sal0", nivel: "error", seccion: "condiciones", campo: "salario", mensaje: "El salario debe ser mayor que cero." });
-    } else if (sal !== null && sal < 300) {
+    } else if (porHora !== null && porHora < SALARIO_MINIMO_REFERENCIA) {
       hallazgos.push({
         id: "salmin",
         nivel: "aviso",
         seccion: "condiciones",
         campo: "salario",
-        mensaje: "El salario parece bajo. Verifique el salario mínimo vigente para la actividad y región (MITRADEL).",
+        mensaje: `El salario equivale a B/. ${porHora.toFixed(2)} por hora, por debajo de la mayoría de las tasas mínimas 2026–2027 (Decreto Ejecutivo 13 de 2025, vigente desde el 16 de enero de 2026). Verifique la tasa de su actividad, tamaño de empresa y región.`,
+      });
+    }
+    if (esExtranjero(d.trabajador)) {
+      hallazgos.push({
+        id: "extranjero",
+        nivel: d.trabajador.permisoTrabajo.trim() ? "sugerencia" : "aviso",
+        seccion: "parteB",
+        campo: "trabajador-permiso",
+        mensaje: d.trabajador.permisoTrabajo.trim()
+          ? "Trabajador extranjero: recuerde respetar el límite de 10 % de personal extranjero ordinario y 15 % especializado (Arts. 17 a 19 C.T.; Decreto Ejecutivo 4 de 2023)."
+          : "Trabajador extranjero: indique el número del permiso de trabajo del MITRADEL. Las empresas pueden tener hasta 10 % de personal extranjero ordinario y 15 % especializado (Arts. 17 a 19 C.T.).",
       });
     }
     if (d.tipo === "indefinido" && d.periodoPrueba) {
@@ -223,6 +243,16 @@ export function revisar(d: FormData, doc?: DocModel): Revision {
     const pt = parseMonto(d.penalidadTecho);
     if (pd !== null && pt !== null && pd > pt) {
       hallazgos.push({ id: "pen", nivel: "aviso", seccion: "condiciones", campo: "penalidad-dia", mensaje: "La penalidad diaria es mayor que el tope máximo." });
+    }
+    const hon = parseMonto(d.honorarios);
+    if (hon !== null && hon > 36000) {
+      hallazgos.push({
+        id: "pac",
+        nivel: "sugerencia",
+        seccion: "condiciones",
+        campo: "honorarios",
+        mensaje: "Desde 2026 el facturador gratuito de la DGI solo aplica hasta B/. 36,000 de ingresos anuales y 100 documentos al mes (Resolución 201-6299); por encima, el contratista debe facturar mediante un PAC.",
+      });
     }
     if (d.trabajador.tipo === "natural" && !d.trabajador.ruc.trim()) {
       hallazgos.push({

@@ -7,7 +7,7 @@ import SignaturePad from "../SignaturePad";
 import { HORAS_MAXIMAS, causalesDefaultLaboral, causalesDefaultServicios } from "@/lib/types";
 import { diasEntre, montoEnLetras, parseMonto } from "@/lib/format";
 import { procesarLogo } from "@/lib/storage";
-import type { SeccionId } from "@/lib/validacion";
+import { SALARIO_MINIMO_REFERENCIA, salarioPorHora, type SeccionId } from "@/lib/validacion";
 import { Field, Card, Seg, Switch } from "../ui";
 import {
   BuildingIcon,
@@ -59,10 +59,12 @@ function LetrasHint({ monto, moneda }: { monto: string; moneda: "balboas" | "dol
 const BASE_LABORAL = [
   "Objeto, cargo y funciones",
   "Modalidad presencial, híbrida o teletrabajo",
-  "Jornada legal · Arts. 30 a 32",
-  "Salario en letras y deducciones de ley",
+  "Jornada y horas extra · Arts. 30 a 33",
+  "Salario mínimo 2026 y deducciones · Ley 462",
   "Vacaciones y décimo tercer mes",
   "Prima de antigüedad e indemnización",
+  "Maternidad y paternidad · Art. 107 y Ley 27 de 2017",
+  "Prevención del acoso · Ley 7 de 2018",
   "Causales de justa causa · Art. 213",
   "Tres ejemplares para el MITRADEL · Art. 67",
 ];
@@ -78,10 +80,22 @@ const INCLUYE: Record<TipoContrato, string[]> = {
     "Penalidad por retraso con tope",
     "Propiedad intelectual · Ley 64 de 2012",
     "Confidencialidad y datos · Ley 81 de 2019",
-    "Relación independiente, sin subordinación",
+    "Independiente que cotiza a la CSS · Ley 462",
     "Terminación anticipada con preaviso",
   ],
 };
+
+function PorHoraHint({ salario, horas }: { salario: string; horas: string }) {
+  const s = parseMonto(salario);
+  const h = parseMonto(horas);
+  if (s === null || s <= 0 || h === null || h <= 0) return null;
+  const ph = salarioPorHora(s, h);
+  return (
+    <span className={`hint hint--block ${ph < SALARIO_MINIMO_REFERENCIA ? "hint--warn" : ""}`}>
+      ≈ B/. {ph.toFixed(2)} por hora · compárelo con la tasa mínima 2026 de su actividad y región (DE 13 de 2025).
+    </span>
+  );
+}
 
 export function TipoContratoCard({
   data,
@@ -316,7 +330,17 @@ export function CondicionesLaboralesCard({ data, set, estado }: { data: FormData
 
       <div className="divider-label">Remuneración</div>
       <div className="field-grid">
-        <Field label="Salario mensual" required htmlFor="salario" hint={<LetrasHint monto={data.salario} moneda="balboas" />}>
+        <Field
+          label="Salario mensual"
+          required
+          htmlFor="salario"
+          hint={
+            <>
+              <LetrasHint monto={data.salario} moneda="balboas" />
+              <PorHoraHint salario={data.salario} horas={data.horasSemanales} />
+            </>
+          }
+        >
           <div className="input-wrap input-wrap--pre">
             <span className="prefix">B/.</span>
             <input

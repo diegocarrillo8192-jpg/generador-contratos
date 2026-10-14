@@ -149,7 +149,15 @@ function personaNaturalTexto(p: Persona, conProfesion: boolean): string {
   );
   const ruc = rucTexto(p, false);
   if (ruc) out.push(ruc);
+  if (esExtranjero(p) && p.permisoTrabajo.trim()) {
+    out.push(`con permiso de trabajo N.° ${p.permisoTrabajo.trim()} expedido por el Ministerio de Trabajo y Desarrollo Laboral`);
+  }
   return out.join(", ");
+}
+
+export function esExtranjero(p: Persona): boolean {
+  const n = p.nacionalidad.trim().toLowerCase();
+  return n.length > 0 && !n.startsWith("panameñ") && !n.startsWith("panamen");
 }
 
 function personaJuridicaTexto(p: Persona, conGiro: boolean): string {
@@ -236,7 +244,11 @@ function jornadaTexto(d: FormData): string {
   const max = HORAS_MAXIMAS[d.jornada];
   const horas = entero(d.horasSemanales, max);
   const horario = d.horario.trim() ? `, en el horario de ${quitarPuntoFinal(d.horario)}` : "";
-  return `“EL TRABAJADOR” laborará en jornada ${NOMBRE_JORNADA[d.jornada]} de ${numeroConLetras(horas)} horas semanales${horario}, dentro de los límites máximos legales (jornada diurna: 8 horas diarias y 48 semanales; mixta: 7½ horas diarias y 45 semanales; nocturna: 7 horas diarias y 42 semanales), conforme a los Artículos 30, 31 y 32 del Código de Trabajo. El trabajo en horas extraordinarias sólo procederá en los casos permitidos por la ley y será remunerado con los recargos legales correspondientes.`;
+  return `“EL TRABAJADOR” laborará en jornada ${NOMBRE_JORNADA[d.jornada]} de ${numeroConLetras(horas)} horas semanales${horario}, dentro de los límites máximos legales (jornada diurna: 8 horas diarias y 48 semanales; mixta: 7½ horas diarias y 45 semanales; nocturna: 7 horas diarias y 42 semanales), conforme a los Artículos 30, 31 y 32 del Código de Trabajo.`;
+}
+
+function horasExtraTexto(): string {
+  return `El trabajo en horas extraordinarias sólo procederá en los casos permitidos por la ley, no podrá exceder de tres (3) horas diarias ni de nueve (9) horas semanales, y se remunerará con los recargos del Artículo 33 del Código de Trabajo: veinticinco por ciento (25 %) si se efectúa en el período diurno; cincuenta por ciento (50 %) si se efectúa en el período nocturno o es prolongación de la jornada mixta iniciada en el período diurno; y setenta y cinco por ciento (75 %) si es prolongación de la jornada nocturna o de la mixta iniciada en el período nocturno, así como el exceso sobre los límites indicados. “EL TRABAJADOR” disfrutará de al menos un (1) día de descanso semanal remunerado y de los días de fiesta o duelo nacional establecidos en el Artículo 46 del Código de Trabajo.`;
 }
 
 function modalidadItems(d: FormData): string[] {
@@ -316,13 +328,13 @@ function laboral(d: FormData): DocModel {
     ],
   });
 
-  secciones.push({ titulo: "Jornada de trabajo", items: [jornadaTexto(d)] });
+  secciones.push({ titulo: "Jornada de trabajo, horas extraordinarias y descanso", items: [jornadaTexto(d), horasExtraTexto()] });
 
   secciones.push({
     titulo: "Salario y forma de pago",
     items: [
       salarioTexto(d),
-      `“EL EMPLEADOR” efectuará las deducciones y retenciones de ley: cuotas de la Caja de Seguro Social (CSS), Seguro Educativo, Impuesto sobre la Renta (ISR) cuando corresponda, cuotas sindicales cuando aplique, y las demás autorizadas por el Código de Trabajo. En ningún caso el salario podrá ser inferior al salario mínimo legal vigente fijado para la actividad y región correspondiente.`,
+      `“EL EMPLEADOR” efectuará las deducciones y retenciones de ley: cuotas de la Caja de Seguro Social (CSS), Seguro Educativo, Impuesto sobre la Renta (ISR) cuando corresponda, cuotas sindicales cuando aplique, y las demás autorizadas por el Código de Trabajo. En ningún caso el salario podrá ser inferior al salario mínimo vigente para la actividad, el tamaño de empresa y la región correspondiente, fijado por el Decreto Ejecutivo N.° 13 de 31 de diciembre de 2025 o la norma que lo reemplace.`,
     ],
   });
 
@@ -365,6 +377,13 @@ function laboral(d: FormData): DocModel {
   });
 
   secciones.push({
+    titulo: "Licencias y protección de la maternidad y la paternidad",
+    items: [
+      `“EL EMPLEADOR” reconocerá a “EL TRABAJADOR” las licencias y permisos establecidos en la ley. En particular, la trabajadora en estado de gravidez gozará del fuero de maternidad del Artículo 106 del Código de Trabajo, por lo que sólo podrá ser despedida por causa justificada y previa autorización judicial, y tendrá derecho a una licencia de maternidad remunerada de catorce (14) semanas conforme al Artículo 107 del mismo Código. El trabajador tendrá derecho a la licencia de paternidad de tres (3) días hábiles establecida en la Ley N.° 27 de 2017.`,
+    ],
+  });
+
+  secciones.push({
     titulo: "Causales de terminación de la relación de trabajo",
     items: [
       esIndefinido
@@ -378,7 +397,14 @@ function laboral(d: FormData): DocModel {
     titulo: "Obligaciones de las partes y reglamento interno",
     items: [
       `“EL TRABAJADOR” se obliga a desempeñar sus labores con eficiencia, honradez, dedicación y buena fe; a observar las normas de seguridad e higiene ocupacional; a no concurrir al trabajo en estado de embriaguez o bajo el influjo de drogas; y a cumplir el reglamento interno de trabajo de “EL EMPLEADOR” y las disposiciones de la ley.`,
-      `“EL EMPLEADOR” se obliga a pagar oportunamente el salario, a garantizar condiciones dignas y seguras de trabajo, y a inscribir a “EL TRABAJADOR” en la Caja de Seguro Social desde el inicio de la relación de trabajo.`,
+      `“EL EMPLEADOR” se obliga a pagar oportunamente el salario, a garantizar condiciones dignas y seguras de trabajo, y a inscribir a “EL TRABAJADOR” en la Caja de Seguro Social desde el inicio de la relación de trabajo, efectuando las cotizaciones obrero-patronales conforme a la Ley Orgánica de la Caja de Seguro Social, reformada por la Ley N.° 462 de 2025.`,
+    ],
+  });
+
+  secciones.push({
+    titulo: "Prevención del acoso y la discriminación",
+    items: [
+      `Las partes se obligan a mantener un ambiente de trabajo libre de hostigamiento, acoso sexual o moral, racismo, sexismo y cualquier forma de discriminación. “EL EMPLEADOR” mantendrá la política interna y el procedimiento de quejas exigidos por la Ley N.° 7 de 14 de febrero de 2018, en armonía con el Convenio 190 de la Organización Internacional del Trabajo sobre la violencia y el acoso, aprobado por la Ley N.° 321 de 2022, y “EL TRABAJADOR” se obliga a cumplirlos.`,
     ],
   });
 
@@ -513,7 +539,7 @@ function servicios(d: FormData): DocModel {
   secciones.push({
     titulo: "Naturaleza independiente y no subcontratación",
     items: [
-      `“EL CONTRATISTA” actúa como profesional independiente: asume sus propios riesgos, costos, impuestos y cotizaciones a la seguridad social, y no forma parte de la planilla de “EL CONTRATANTE”. No podrá subcontratar ni ceder el presente contrato, en todo o en parte, sin la autorización previa y escrita de “EL CONTRATANTE”.`,
+      `“EL CONTRATISTA” actúa como profesional independiente: asume sus propios riesgos, costos e impuestos, incluida su cotización obligatoria a la Caja de Seguro Social como trabajador independiente conforme a la Ley N.° 462 de 2025, y no forma parte de la planilla de “EL CONTRATANTE”. No podrá subcontratar ni ceder el presente contrato, en todo o en parte, sin la autorización previa y escrita de “EL CONTRATANTE”.`,
     ],
   });
 

@@ -3923,3 +3923,11 @@ body {
     opacity: 0.55;
   }
 }
+
+.hint--block {
+  display: block;
+  margin-top: 2px;
+}
+.hint--warn {
+  color: var(--warn);
+}

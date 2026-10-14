@@ -89,7 +89,7 @@ const PASOS: Paso[] = [
     puntos: [
       "Confidencialidad, protección de datos personales (Ley 81 de 2019) y propiedad intelectual (Ley 64 de 2012).",
       "Anexo de entrega de equipos y herramientas, con líneas de recibo y firma.",
-      "Biblioteca: exclusividad, viáticos, comisiones, uso de vehículo, garantía, limitación de responsabilidad, arbitraje, fuerza mayor, firma electrónica y más. Toque una cláusula para activarla.",
+      "Biblioteca: exclusividad, prevención del acoso, viáticos, comisiones, uso de vehículo, garantía, limitación de responsabilidad, arbitraje, fuerza mayor, firma electrónica y más. Toque una cláusula para activarla.",
       "«Estipulaciones adicionales»: escriba sus propias condiciones, una por línea.",
     ],
   },
@@ -327,12 +327,17 @@ export default function ManualPage() {
             <h3>Marco legal que aplica la herramienta</h3>
             <ul>
               <li>Código de Trabajo: contrato escrito y en tres ejemplares (Art. 67), contenido mínimo (Art. 68), duración (Arts. 74 y 75), período de prueba (Art. 78), jornadas (Arts. 30 a 32), terminación (Arts. 210 y 213), prima de antigüedad e indemnización (Arts. 224 y 225).</li>
+              <li>Decreto Ejecutivo 13 de 31 de diciembre de 2025: salario mínimo 2026–2027, vigente desde el 16 de enero de 2026.</li>
+              <li>Ley 462 de 2025 (reforma de la CSS): cuotas obrero-patronales y cotización obligatoria de los independientes.</li>
+              <li>Código de Trabajo: horas extraordinarias (Art. 33), fiestas nacionales (Art. 46), fuero y licencia de maternidad (Arts. 106 y 107) y trabajadores extranjeros (Arts. 17 a 19, Decreto Ejecutivo 4 de 2023).</li>
+              <li>Ley 27 de 2017: licencia de paternidad de 3 días hábiles.</li>
+              <li>Ley 7 de 2018 y Convenio 190 de la OIT (Ley 321 de 2022): prevención del acoso y la discriminación.</li>
               <li>Ley 81 de 2019 sobre protección de datos personales.</li>
               <li>Ley 64 de 2012 sobre derecho de autor (cesión de derechos patrimoniales).</li>
               <li>Ley 126 de 2020 sobre teletrabajo.</li>
               <li>Ley 51 de 2008, modificada por la Ley 82 de 2012, sobre documentos y firmas electrónicas.</li>
               <li>Ley 131 de 2013 sobre arbitraje comercial (cláusula opcional).</li>
-              <li>Normativa de la CSS (cuotas obrero-patronales) y de la DGI (ISR, ITBMS y factura electrónica).</li>
+              <li>Normativa de la DGI: ISR, ITBMS y factura electrónica (desde 2026, facturador gratuito hasta B/. 36,000 anuales).</li>
             </ul>
           </div>
         </div>

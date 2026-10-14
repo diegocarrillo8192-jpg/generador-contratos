@@ -147,6 +147,16 @@ export const BIBLIOTECA: ClausulaBiblioteca[] = [
       "Toda controversia derivada de la interpretación, ejecución o terminación del presente contrato que no pueda resolverse mediante negociación directa en un plazo de treinta (30) días será resuelta mediante arbitraje en derecho, conforme a la Ley N.° 131 de 2013 sobre arbitraje comercial, ante un centro de arbitraje con sede en la Ciudad de Panamá, por un (1) árbitro, en idioma español. El laudo será definitivo y obligatorio para las partes.",
     ],
   },
+  {
+    id: "acoso-servicios",
+    titulo: "Prevención del acoso",
+    resumen: "El contratista respeta la política contra el acoso y la discriminación.",
+    ambito: "servicios",
+    categoria: "Cumplimiento",
+    textos: [
+      "{B} y el personal que designe para la ejecución de los servicios se obligan a respetar la política de {A} para prevenir el hostigamiento, el acoso sexual o moral, el racismo y el sexismo, conforme a la Ley N.° 7 de 14 de febrero de 2018 y al Convenio 190 de la Organización Internacional del Trabajo aprobado por la Ley N.° 321 de 2022. Su incumplimiento será causal de terminación del presente contrato.",
+    ],
+  },
   // ---------- Ambos ----------
   {
     id: "fuerza-mayor",
